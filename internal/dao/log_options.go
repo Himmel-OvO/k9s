@@ -4,11 +4,29 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/derailed/k9s/internal/client"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/derailed/k9s/internal/client"
 )
 
+/*
+The LogOptions struct represents logger options and includes various fields, such as CreateDuration, Path, Container, DefaultContainer, SinceTime, Lines, SinceSeconds, Head, Previous, SingleContainer, MultiPods, ShowTimestamp, and AllContainers.
+
+The Info() method returns a string with information about the pod and container based on the LogOptions fields.
+
+The Clone() method creates a copy of the LogOptions struct.
+
+The HasContainer() method checks if a container is present in the LogOptions struct.
+
+The ToggleAllContainers() method toggles between single container mode and all containers mode. If SingleContainer is true, this method has no effect.
+
+The ToPodLogOptions() method returns a v1.PodLogOptions struct based on the LogOptions fields.
+
+The ToLogItem() method creates a new LogItem based on the LogOptions fields and adds a log header to display pod/container information along with the log message.
+
+The ToErrLogItem() method creates a new LogItem based on an error message and adds a log header with a timestamp and orange formatting.
+*/
 // LogOptions represents logger options.
 type LogOptions struct {
 	CreateDuration   time.Duration

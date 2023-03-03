@@ -6,9 +6,9 @@ import (
 
 // ImageSpec represents a container image.
 type ImageSpec struct {
-	Index             int
-	Name, DockerImage string
-	Init              bool
+	Index                        int
+	Name, DockerImage, NameSpace string
+	Init                         bool
 }
 
 // ImageSpecs represents a collection of container images.
@@ -39,8 +39,9 @@ type ImagesSpec struct {
 
 // Element tracks a given container image.
 type Element struct {
-	Image string `json:"image,omitempty"`
-	Name  string `json:"name"`
+	Image     string `json:"image,omitempty"`
+	Name      string `json:"name"`
+	NameSpace string `json:"namespace"`
 }
 
 // GetTemplateJsonPatch builds a json patch string to update PodSpec images.
@@ -76,10 +77,10 @@ func extractElements(imageSpecs ImageSpecs) (initElementsOrders []Element, initE
 	for _, spec := range imageSpecs {
 		if spec.Init {
 			initElementsOrders = append(initElementsOrders, Element{Name: spec.Name})
-			initElements = append(initElements, Element{Name: spec.Name, Image: spec.DockerImage})
+			initElements = append(initElements, Element{Name: spec.Name, Image: spec.DockerImage, NameSpace: spec.NameSpace})
 		} else {
 			elementsOrders = append(elementsOrders, Element{Name: spec.Name})
-			elements = append(elements, Element{Name: spec.Name, Image: spec.DockerImage})
+			elements = append(elements, Element{Name: spec.Name, Image: spec.DockerImage, NameSpace: spec.NameSpace})
 		}
 	}
 	return initElementsOrders, initElements, elementsOrders, elements

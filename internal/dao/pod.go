@@ -9,10 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/derailed/k9s/internal"
-	"github.com/derailed/k9s/internal/client"
-	"github.com/derailed/k9s/internal/render"
-	"github.com/derailed/k9s/internal/watch"
 	"github.com/rs/zerolog/log"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,8 +18,19 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	restclient "k8s.io/client-go/rest"
 	mv1beta1 "k8s.io/metrics/pkg/apis/metrics/v1beta1"
+
+	"github.com/derailed/k9s/internal"
+	"github.com/derailed/k9s/internal/client"
+	"github.com/derailed/k9s/internal/render"
+	"github.com/derailed/k9s/internal/watch"
 )
 
+/*
+这是一个 Golang 代码包，定义了一个 Pod 结构体，它是 Kubernetes Pod 资源的代表。Pod 结构体还包含一些用于管理 Pod 资源的方法，
+例如获取 Pod 资源、获取 Pod 容器的日志、获取 Pod 所在的节点、获取 Pod 所有容器的名称等。
+
+此外，还定义了一些接口来实现对 Pod 资源的访问、删除、获取日志、控制等功能。
+*/
 var (
 	_ Accessor        = (*Pod)(nil)
 	_ Nuker           = (*Pod)(nil)
@@ -337,6 +344,7 @@ func tailLogs(ctx context.Context, logger Logger, opts *LogOptions) LogChan {
 				// This call will block if nothing is in the stream!!
 				if stream, err = req.Stream(ctx); err == nil {
 					wg.Add(1)
+					_ = fmt.Errorf("Rider print %s. Please set the image on the controller", opts.Path)
 					go readLogs(ctx, &wg, stream, out, opts)
 					return
 				}
@@ -454,7 +462,7 @@ func (p *Pod) SetImages(ctx context.Context, path string, imageSpecs ImageSpecs)
 		return err
 	}
 	if isManaged {
-		return fmt.Errorf("Unable to set image. This pod is managed by %s. Please set the image on the controller", manager)
+		return fmt.Errorf("Unable to set image. This pod is managed by %s. Please set the image on the controller", manager) //todo
 	}
 	jsonPatch, err := GetJsonPatch(imageSpecs)
 	if err != nil {
@@ -473,6 +481,41 @@ func (p *Pod) SetImages(ctx context.Context, path string, imageSpecs ImageSpecs)
 	)
 	return err
 }
+
+/*
+func (p *Pod) SetTraceLogs(ctx context.Context, path string, imageSpecs ImageSpecs) error {
+	ns, n := client.Namespaced(path)
+	auth, err := p.Client().CanI(ns, "v1/pod", []string{client.PatchVerb})
+	if err != nil {
+		return err
+	}
+	if !auth {
+		return fmt.Errorf("user is not authorized to patch a deployment")
+	}
+	manager, isManaged, err := p.isControlled(path)
+	if err != nil {
+		return err
+	}
+	if isManaged {
+		return fmt.Errorf("Unable to set Trace Logs. This pod is managed by %s. Please set the trace logs on the controller", manager) //todo
+	}
+	jsonPatch, err := GetJsonPatch(imageSpecs)
+	if err != nil {
+		return err
+	}
+	dial, err := p.Client().Dial()
+	if err != nil {
+		return err
+	}
+	_, err = dial.CoreV1().Pods(ns).Patch(
+		ctx,
+		n,
+		types.StrategicMergePatchType,
+		jsonPatch,
+		metav1.PatchOptions{},
+	)
+	return err
+}*/
 
 func (p *Pod) isControlled(path string) (string, bool, error) {
 	pod, err := p.GetInstance(path)
